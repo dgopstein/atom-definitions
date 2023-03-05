@@ -1,0 +1,17 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    csv (3.2.6)
+    nokogiri (1.14.2-x86_64-darwin)
+      racc (~> 1.4)
+    racc (1.6.2)
+
+PLATFORMS
+  x86_64-darwin-19
+
+DEPENDENCIES
+  csv
+  nokogiri
+
+BUNDLED WITH
+   2.4.6
