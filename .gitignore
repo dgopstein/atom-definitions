@@ -58,3 +58,6 @@ build-iPhoneSimulator/
 # emacs
 *~
 #*
+
+# mac
+.DS_Store

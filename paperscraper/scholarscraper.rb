@@ -5,6 +5,7 @@ require 'nokogiri'
 require 'pp'
 
 SLEEP_DURATION = 5
+CACHE_DIR = "cache"
 
 if !ARGV[0]
   puts
@@ -18,8 +19,6 @@ if !ARGV[0]
 end
 
 papers = CSV.table(ARGV[0]).map(&:to_h)
-
-CACHE_DIR = "cache"
 
 def paper_cache_name(paper)
   y = paper[:year]
@@ -102,10 +101,11 @@ citing_papers = citation_htmls.flatten.map do |html|
     if title.empty?
       title = div.xpath('./h3[@class="gs_rt"]/text()').text
     end
-    names = div.xpath('./div[@class="gs_a"]//text()').map(&:text).join
+    authors = div.xpath('./div[@class="gs_a"]//text()').map(&:text).join
+    summary = div.xpath('./div[@class="gs_rs"]/text()')
     pdf_url = div.parent.xpath('.//div[@class="gs_or_ggsm"]/a/@href').first&.text
     n_citations = div.xpath('./div/a[starts-with(text(), "Cited by")]').text
-    {title: title, names: names, pdf_url: pdf_url, n_citations: n_citations, cited_title: cited_title}
+    {title: title, authors: authors, summary: summary, pdf_url: pdf_url, n_citations: n_citations, cited_title: cited_title}
   end
 end.flatten(1)
 
@@ -113,15 +113,21 @@ end.flatten(1)
 
 counted_citers = citing_papers.group_by{|c| c[:title]}.map do |title, list|
   citing_paper = list.first
+
+  authors = citing_paper[:authors].encode('UTF-8', :invalid=>:replace).split(/- |\d{4}/).first
+  year = citing_paper[:authors].encode('UTF-8', :invalid=>:replace).scan(/\d{4}/).first
+
   {
-    citing_paper_title: title,
-    citing_paper_authors: citing_paper[:names],
-    citing_paper_citations: citing_paper[:n_citations],
-    num_cited_papers: list.size,
-    citing_paper_pdf_url: citing_paper[:pdf_url],
-    cited_paper_titles: list.map{|c| c[:cited_title]}.join(" | "),
+    title: title,
+    authors: authors,
+    year: year,
+    n_cited_by: citing_paper[:n_citations],
+    summary: citing_paper[:summary],
+    n_cited: list.size,
+    pdf_url: citing_paper[:pdf_url],
+    cited_papers: list.map{|c| c[:cited_title].split(" ").take(2).join(" ")}.join(" | "),
   }
-end.sort_by{|x| [-x[:num_cited_papers], -x[:citing_paper_citations].split(" ").last.to_i]}
+end.sort_by{|x| [-x[:n_cited], -x[:n_cited_by].split(" ").last.to_i]}
 
 input_prefix = ARGV[0].split('.').first
 
