@@ -1,3 +1,5 @@
+codeql_db
+
 *.gem
 *.rbc
 /.config
