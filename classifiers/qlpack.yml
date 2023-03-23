@@ -1,0 +1,6 @@
+name: atom-definitions/classifiers
+groups: [cpp]
+dependencies:
+  codeql/cpp-all: ^0.0.2
+  codeql/cpp-queries: ^0.0.2
+extractor: cpp
