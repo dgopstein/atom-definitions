@@ -1,5 +1,7 @@
 codeql_db
 
+*.code-workspace
+
 *.gem
 *.rbc
 /.config
